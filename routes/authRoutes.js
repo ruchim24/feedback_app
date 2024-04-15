@@ -9,11 +9,17 @@ passport.authenticate('google', {
 ));
 
 //route to handle callback after user grants permission
-app.get('/auth/google/callback', passport.authenticate('google'));
+app.get(
+    '/auth/google/callback', 
+    passport.authenticate('google'),
+   (req,res) => {
+     res.redirect('/surveys');
+   }
+);
 
 app.get('/api/logout',(req,res)=>{
     req.logout();
-    res.send(req.user);
+    res.redirect('/');
 })
 
 //passport automatically attaches user property to the req object

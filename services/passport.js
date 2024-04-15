@@ -6,36 +6,32 @@ const keys = require('../config/keys');
 const User = mongoose.model('users');
 
 passport.serializeUser((user, done) => {
- done(null, user.id);
+  done(null, user.id);
 });
 
 passport.deserializeUser((id, done) => {
- User.findById(id)
-   .then(user => {
-     done(null, user);
-   });
+  User.findById(id)
+    .then(user => {
+      done(null, user);
+    });
 });
 
 // configuaring google-oauth-20 with passport
 passport.use(
-    new GoogleStrategy(
+  new GoogleStrategy(
     {
-        clientID: keys.googleClientID,
-        clientSecret: keys.googleClientSecret,
-        callbackURL: '/auth/google/callback',
-        proxy: true
+      clientID: keys.googleClientID,
+      clientSecret: keys.googleClientSecret,
+      callbackURL: '/auth/google/callback',
+      proxy: true
     },
-    (accessToken, refreshToken, profile, done) => {
-        User.findOne({ googleId : profile.id })
-            .then(existingUser => {
-                if(existingUser){
-                  done(null,existingUser);
-                }else{
-                    //creating new model instance
-                    new User({ googleId: profile.id })
-                     .save()
-                     .then(user => done(null, user));
-                }
-            });
+    async (accessToken, refreshToken, profile, done) => {
+      const existingUser = await User.findOne({ googleId: profile.id })
+      if (existingUser) {
+        return done(null, existingUser);
+      } 
+        //creating new model instance
+        const user = await new User({ googleId: profile.id }).save();
+        done(null, user);
     }
-));
+  ));
